@@ -1,0 +1,18 @@
+{
+  "name": "pandjs",
+  "version": "1.0.0",
+  "description": "Pandora Web Client For NodeJS",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Mitchell Urgero",
+  "license": "ISC",
+  "dependencies": {
+    "anesidora": "^1.1.1",
+    "body-parser": "^1.15.2",
+    "connect": "^3.4.1",
+    "express": "^4.14.0",
+    "serve-static": "^1.11.1"
+  }
+}

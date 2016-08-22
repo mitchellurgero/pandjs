@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="description" content="">
+		<meta name="author" content="">
+		<link href="css/bootstrap.min.css" rel="stylesheet">
+		<script src="js/jquery.js"></script>
+		<script src="js/bootstrap.min.js"></script>
+		<title>Pandora Web Client</title>
+		<style>
+			textarea
+			{
+  				width:100%;
+			}
+			.textwrapper
+			{
+  				border:1px solid #999999;
+	  			margin:5px 0;
+  				padding:3px;
+			}
+		</style>
+	</head>
+	<body onLoad="getStations()">
+		<div class="container">
+			<div class="page-header">
+				<h2>Pandora Web Client For NodeJS <small><div id="username"></div></small></h2>
+				
+			</div>
+				<div class="row">
+					<div class="col-md-5 col-md-offset-1">
+						<h3>Player</h3>
+						<div id="audioTitle"></div>
+						<audio controls autoplay id="audioPlayer">
+  							Your browser does not support the audio tag.
+						</audio><br />
+						<button class="btn btn-small btn-default" onClick="playPrev()"><span class="glyphicon glyphicon-backward"></span></button>
+						<button class="btn btn-small btn-default" onClick="pause()"><span class="glyphicon glyphicon-pause"></span></button>
+						<button class="btn btn-small btn-default" onClick="playNext()"><span class="glyphicon glyphicon-forward"></span></button>
+					</div>
+					<div class="col-md-6">
+						<h3>Stations</h3>
+						<div id="stationTable" style="overflow-y:scroll; height:400px;">
+							
+						</div>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-12">
+      					<div class="textwrapper"><textarea cols="30" rows="5" name="" id="log" class="boxsizingBorder" disabled></textarea></div>
+					</div>
+				</div>
+		</div>
+		<script>
+		var listCount = 0;
+		var currentCount = 0;
+		var prevList = [];
+		var aud = document.getElementById("audioPlayer");
+		aud.onended = function() {
+    		playNext(true);
+		};
+			function getStations(){
+				//Get Username from server for displaying:
+				getUser();
+				$.ajax({
+    				data: 'type=stations',
+    				url: './controls',
+    				method: 'POST', // or GET
+    				success: function(msg) {
+    					//console.info(msg);
+    					var string = '<table class="table">';
+    					var obj = JSON.parse(msg);
+    					for (i = 0; i < obj.length; i++) { 
+    						string = string + '\n<tr><td><a href="#" onclick="setStation(\''+ obj[i].stationToken +'\')">' + obj[i].stationName + '</a></td></tr>';
+    					}
+    					string = string + "</table>";
+        				document.getElementById("stationTable").innerHTML = string;
+        				playNext(true);
+    				}
+				});
+			}
+			
+			function playNext(change = false){
+				if(currentCount != listCount && currentCount < listCount && change == false){
+					currentCount = currentCount + 1;
+					var temp = prevList[currentCount];
+					var trackString = temp.split(":::");
+    				document.getElementById("audioPlayer").src = trackString[1];
+					document.getElementById("audioTitle").innerHTML = "<h4>" + trackString[0] + "</h4>";
+    				document.getElementById("log").value = document.getElementById("log").value + "\n" + trackString[0];
+					document.getElementById("audioPlayer").load();
+					var textarea = document.getElementById('log');
+					textarea.scrollTop = textarea.scrollHeight;
+				} else {
+					$.ajax({
+	    				data: 'type=next',
+    					url: './controls',
+    					method: 'POST', // or GET
+    					success: function(msg) {
+	    					console.log(msg);
+	    					if(errorCheck(msg)){
+    							error("There was an error!", msg);
+    							return;
+    						}
+    						var trackString = msg.split(":::");
+    						document.getElementById("audioPlayer").src = trackString[1];
+    						listCount++;
+    						currentCount = listCount;
+    						prevList.push(msg);
+    						document.getElementById("audioTitle").innerHTML = "<h4>" + trackString[0] + "</h4>";
+    						document.getElementById("log").value = document.getElementById("log").value + "\n" + trackString[0];
+    						document.getElementById("audioPlayer").load();
+    						var textarea = document.getElementById('log');
+							textarea.scrollTop = textarea.scrollHeight;
+    					}
+					});	
+				}
+				
+			
+			}
+			function playPrev(){
+				if(currentCount == listCount){
+					currentCount = currentCount - 1;
+				}
+				if(currentCount == 0 ){
+					//To prevent currentCount going negative and fucking up the prevList array
+					currentCount = currentCount + 1;
+				}
+				currentCount = currentCount - 1;
+				var temp = prevList[currentCount];
+				var trackString = temp.split(":::");
+    			document.getElementById("audioPlayer").src = trackString[1];
+				document.getElementById("audioTitle").innerHTML = "<h4>" + trackString[0] + "</h4>";
+    			document.getElementById("log").value = document.getElementById("log").value + "\n" + trackString[0];
+				document.getElementById("audioPlayer").load();
+				var textarea = document.getElementById('log');
+				textarea.scrollTop = textarea.scrollHeight;
+			}
+			function pause(){
+				if(document.getElementById("audioPlayer").paused){
+					document.getElementById("audioPlayer").play();
+				} else {
+					document.getElementById("audioPlayer").pause();
+				}
+			}
+			function setStation(stToken){
+				$.ajax({
+    				data: 'type=set&token=' + stToken,
+    				url: './controls',
+    				method: 'POST', // or GET
+    				success: function(msg) {
+    					console.log(msg);
+    					if(errorCheck(msg)){
+    							error("There was an error!", msg);
+    							return;
+    					}
+    					document.getElementById("log").value = document.getElementById("log").value + "\n" + msg;
+    					playNext(true);
+    					var textarea = document.getElementById('log');
+						textarea.scrollTop = textarea.scrollHeight;
+    				}
+				});
+			}
+			
+			function getUser(){
+				$.ajax({
+    				data: 'type=info',
+    				url: './controls',
+    				method: 'POST', // or GET
+    				success: function(msg) {
+    					console.log(msg);
+    					if(errorCheck(msg)){
+    							error("There was an error!", msg);
+    							return;
+    					}
+    					document.getElementById("username").innerHTML = msg;
+    					var textarea = document.getElementById('log');
+						textarea.scrollTop = textarea.scrollHeight;
+    				}
+				});
+			}
+			
+			
+			//Error Modal shit
+			function errorCheck(msg){
+				msg = msg.toLowerCase();
+				if(msg.includes("error")){
+					return true;
+				} else {
+					return false;
+				}
+			}
+			function error(header, content){
+				doModal('idMyModal', header, content, '', '');
+			}
+			function doModal(placementId, heading, formContent, strSubmitFunc, btnText)
+			{
+    			html =  '<div id="modalWindow" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="confirm-modal" aria-hidden="true">';
+    			html += '<div class="modal-dialog">';
+    			html += '<div class="modal-content">';
+    			html += '<div class="modal-header">';
+    			html += '<a class="close" data-dismiss="modal">×</a>';
+    			html += '<h4>'+heading+'</h4>'
+    			html += '</div>';
+    			html += '<div class="modal-body">';
+    			html += '<p>';
+    				html += formContent;
+    			html += '</div>';
+    			html += '<div class="modal-footer">';
+    			if (btnText!='') {
+        			html += '<span class="btn btn-success"';
+        			html += ' onClick="'+strSubmitFunc+'">'+btnText;
+        			html += '</span>';
+    			}
+    			html += '<span class="btn btn-default" data-dismiss="modal">';
+    			html += 'Close';
+    			html += '</span>'; // close button
+    			html += '</div>';  // footer
+    			html += '</div>';  // content
+    			html += '</div>';  // dialog
+    			html += '</div>';  // modalWindow
+				$("#"+placementId).html(html);
+    			$("#modalWindow").modal();
+    			$("#dynamicModal").modal('show');
+			}
+		</script>
+		<div id="idMyModal"></div>
+	</body>
+</html>
