@@ -7,9 +7,9 @@ FOR EDUCATION ONLY. NOT TO BE USED TO ILLEGALLY DOWNLOAD, OR DISTRIBUTE UNLICENS
 
 */
 
-//Configuration Options:
-var username = "username@domain.com";
-var password = "SomeSuperSecretPasswordThatNoOneCanGuess!"; //Might at some point change this to a login page. who knows.
+//Do not change these unless you know what you are doing!!!
+var username = "";
+var password = "";
 
 
 /*
@@ -49,7 +49,7 @@ app.post('/controls', function(req, res) {
         			var station = stationList.stations[currentStation];
         			pandora.request("station.getPlaylist", {
 	            		"stationToken": station.stationToken,
-            			"additionalAudioUrl": "HTTP_64_AACPLUS" //change to HTTP_64_AACPLUS for higher quality?
+            			"additionalAudioUrl": "HTTP_64_AACPLUS"
         			}, function(err, playlist) {
         				if(err){
 							console.log("Error next['station.getPlaylist']:");
@@ -96,26 +96,52 @@ app.post('/controls', function(req, res) {
 		case "reset":
 			login();
 			break;
+		case "login":
+			if(username == "" || (username == req.body.user && password == req.body.password)){
+				username = req.body.user;
+				password = req.body.password;
+				console.log("Login to pandora as user " + username);
+				if(pandora == null){
+						pandora = new Anesidora(username, password);
+				}
+				var iflogin = pandora.login(function(err) {
+					if(err){
+						console.log("Error login:");
+						console.info(err);
+						username = "";
+						password = "";
+						pandora = null;
+						console.log("Could not login!");
+						res.send("Could not login. If there is an error to display it will be below. <br> " + err);
+						return false;
+					} else {
+						console.log("Logged in!");
+						res.send("true");
+						return true;
+					}
+				});
+			} else {
+				res.send("Someone is already logged in and the server only supports one session at a time! Please see server logs for details!");
+			}
+			break;
+		case "logout":
+			if(req.body.user == username && req.body.password == password && username != ""){
+				username = "";
+				password = "";
+				pandora = null;
+				res.send("true");
+			} else {
+				res.send("Already logged out!");
+			}
+			break;
 		case "info":
 			res.send(username + "'s Pandora :)");
 			
 			break;
 	}
 });
-login();
+//login();
 app.listen(8080, function() {
   console.log('Pandora Controls listening on 8080...');
 });
-
-function login(){
-	console.log("Login to pandora as user " + username);
-	pandora.login(function(err) {
-    	if(err){
-    		console.log("Error login:");
-    		console.info(err);
-    		return;
-    	}
-	});
-}
-
 	

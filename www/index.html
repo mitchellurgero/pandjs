@@ -24,10 +24,39 @@
 			}
 		</style>
 	</head>
-	<body onLoad="getStations()">
-		<div class="container">
+	<body onLoad="">
+		<div class="container" id="loginForm">
+			<br>
+			<br>
+			<div class="row">
+				<div class="col-md-6 col-md-offset-3">
+					<div class="panel panel-primary">
+						<div class="panel-heading">
+							<h2>Login to Pandora!</h2>
+						</div>
+						<div class="panel-body">
+							<div class="row">
+								<div class="col-md-8 col-md-offset-2">
+									<p>
+									<div class="form">
+										<input type="text" class="form-control" name="user" id="user" placeholder="Pandora Username / Email"><br/>
+										<input type="password" class="form-control" name="password" id="password" placeholder="Pandora Password"><br />
+										<button class="btn btn-primary pull-right" onclick="login()">Login to Pandora</button><br />
+									</div>
+									</p>
+								</div>
+							</div>
+						</div>
+						<div class="panel-footer">
+							<p><i><b>NOTE:</b></i> This sends your credentials to the server hosting this software and the admin of the server will be able to read said credentials if they <i>really</i> wanted to. Please be mindful of this.</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="container" id="playerForm" style="display:none;">
 			<div class="page-header">
-				<h3>Pandora Web Client For NodeJS <small><div id="username"></div></small></h3>
+				<h3>Pandora Web Client For NodeJS <small><div id="username"></div> &nbsp; <span><a href="#" onclick="logout()">Logout!</a></span></small></h3>
 				
 			</div>
 				<div class="row">
@@ -69,7 +98,12 @@
 		if (navigator.userAgent.match(/Mobile/)) {
 			document.getElementById('buttons').className = 'navbar-fixed-bottom';
 		}
-		
+		//Make sure we logout if needed
+		window.onbeforeunload = function(){
+			logout();
+			return;
+		};
+
 		var listCount = 0;
 		var currentCount = 0;
 		var prevList = [];
@@ -77,6 +111,52 @@
 		aud.onended = function() {
     		playNext(true);
 		};
+		//getStations()
+		function login(){
+			$.ajax({
+				method:'post',
+				url:'./controls',
+				data:{
+					type:"login",
+					user:document.getElementById("user").value,
+					password:document.getElementById("password").value
+				},
+				success:function(result) {
+					if(result == "true"){
+						document.getElementById("loginForm").style = "display:none;";
+						document.getElementById("playerForm").style = "display:block;";
+						getStations();
+					} else {
+						error("Error logging in!", result);
+						return;
+					}
+				}
+				}).fail(function(e) {
+					error("There was an error sending ajax request!", e);
+				});
+			
+		}
+		function logout(){
+			$.ajax({
+				method:'post',
+				url:'./controls',
+				data:{
+					type:"logout",
+					user:document.getElementById("user").value,
+					password:document.getElementById("password").value
+				},
+				success:function(result) {
+					if(result == "true"){
+						location.reload();
+					} else {
+						error("Oops!", result);
+						return;
+					}
+				}
+				}).fail(function(e) {
+					error("There was an error sending ajax request!", e);
+				});
+		}
 			function getStations(){
 				//Get Username from server for displaying:
 				getUser();
@@ -209,6 +289,7 @@
 				}
 			}
 			function error(header, content){
+				console.log(content);
 				doModal('idMyModal', header, content, '', '');
 			}
 			function doModal(placementId, heading, formContent, strSubmitFunc, btnText)
