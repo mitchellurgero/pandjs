@@ -144,4 +144,24 @@ app.post('/controls', function(req, res) {
 app.listen(8080, function() {
   console.log('Pandora Controls listening on 8080...');
 });
-	
+function login(){
+	if(pandora == null){
+		pandora = new Anesidora(username, password);
+	}
+	var iflogin = pandora.login(function(err) {
+		if(err){
+			console.log("Error login:");
+			console.info(err);
+			username = "";
+			password = "";
+			pandora = null;
+			console.log("Could not login!");
+			res.send("Could not login. If there is an error to display it will be below. <br> " + err);
+			return false;
+		} else {
+			console.log("Logged in!");
+			res.send("true");
+			return true;
+		}
+	});	
+}
