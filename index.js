@@ -11,7 +11,7 @@ FOR EDUCATION ONLY. NOT TO BE USED TO ILLEGALLY DOWNLOAD, OR DISTRIBUTE UNLICENS
 var username = "";
 var password = "";
 var port = 8080;
-if(process.env.PORT != null || process.env.PORT != ""){
+if(process.env.PORT != null && process.env.PORT != ""){
 	port = process.env.PORT;
 }
 /*
@@ -64,7 +64,7 @@ app.post('/controls', function(req, res) {
             			var track = playlist.items[0];
             			console.log("Playing '" + track.songName + "' by " + track.artistName);
             			console.log(track.additionalAudioUrl);
-            			res.send("Playing '" + track.songName + "' by " + track.artistName + ":::" + track.additionalAudioUrl);
+            			res.send(track.songName + "<br /><small>" + track.artistName + "</small>" + ":::" + track.additionalAudioUrl);
         			});
     			});	
 			}catch(ex){
