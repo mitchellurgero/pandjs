@@ -10,8 +10,10 @@ FOR EDUCATION ONLY. NOT TO BE USED TO ILLEGALLY DOWNLOAD, OR DISTRIBUTE UNLICENS
 //Do not change these unless you know what you are doing!!!
 var username = "";
 var password = "";
-
-
+var port = 8080;
+if(process.env.PORT != null || process.env.PORT != ""){
+	port = process.env.PORT;
+}
 /*
 DO NOT TOUCH PAST THIS POINT, THIS IS THE MEAT OF THE WEB UI FOR PANDORA - IT HANDLES ERRORS, ETC. SHOULD NOT BE TOUCH UNLESS YOU KNOW PANDORA API.
 */
@@ -141,8 +143,8 @@ app.post('/controls', function(req, res) {
 	}
 });
 //login();
-app.listen(8080, function() {
-  console.log('Pandora Controls listening on 8080...');
+app.listen(port, function() {
+  console.log('Pandora Controls listening on' + port + '...');
 });
 function login(){
 	if(pandora == null){
