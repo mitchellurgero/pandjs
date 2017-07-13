@@ -2,10 +2,14 @@
   "name": "pandjs",
   "version": "1.0.0",
   "description": "Pandora Web Client For NodeJS",
+  
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "npm install && node index.js"
+  },
+  "engines": {
+    "node": "6.11.1"
   },
   "author": "Mitchell Urgero",
   "license": "ISC",
