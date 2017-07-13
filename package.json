@@ -10,7 +10,7 @@
   },
   "engines": {
     "node": "6.11.1"
-  }
+  },
   "author": "Mitchell Urgero",
   "license": "ISC",
   "dependencies": {
